@@ -1,6 +1,14 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <vector>
+#include <array>
+#include <string>
+#include <cstring>
+
+using std::vector;
+using std::array;
+using std::string;
 
 const char *vertexShaderSource = "#version 330 core\n"
     "layout (location = 0) in vec3 aPos;\n"
@@ -19,6 +27,46 @@ const char *fragmentShaderSource = "#version 330 core\n"
 void processInput(GLFWwindow *window) {
     if(glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS) {
         glfwSetWindowShouldClose(window, true);
+    }
+}
+
+unsigned int initVertexShader() {
+    unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
+
+    // Attach the shader source code to the shader object
+    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
+
+    // compile the shader:
+    glCompileShader(vertexShader);
+
+    return vertexShader;
+}
+
+unsigned int initFragmentShader() {
+    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+
+    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+
+    glCompileShader(fragmentShader);
+
+    return fragmentShader;
+}
+
+void shaderCheckSuccess(unsigned int shader, string type, int success, char infoLog[512]) {
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+
+    if(!success) {
+        glGetShaderInfoLog(shader, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::" << type << "::COMPILATION_FAILED\n" << infoLog << std::endl;
+    }
+}
+
+void checkLinkSuccess(unsigned int shaderProgram, int success, char infoLog[512]) {
+    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+
+    if (!success) {
+        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
     }
 }
 
@@ -41,45 +89,27 @@ int main() {
     // Make the window's context current
     glfwMakeContextCurrent(window);
 
+    // Initialize GLEW
     GLenum err = glewInit();
+
     if (GLEW_OK != err) {
         fprintf(stderr, "GLEW Error: %s\n", glewGetErrorString(err));
         return 1;
     }
 
     // SHADERS
-    unsigned int vertexShader;
-    vertexShader = glCreateShader(GL_VERTEX_SHADER);
-
-    // Attach the shader source code to the shader object
-    glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-
-    // compile the shader:
-    glCompileShader(vertexShader);
-
-    // check for success
-    int  success;
+    int success = 0;
     char infoLog[512];
-    glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
 
-    if(!success) {
-        glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
+    // VERTEX SHADER
+    unsigned int vertexShader = initVertexShader();
 
-    // fragment shader
-    unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+    shaderCheckSuccess(vertexShader, "VERTEX", success, infoLog);
 
-    glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-    
-    glCompileShader(fragmentShader);
+    // FRAGMENT SHADER
+    unsigned int fragmentShader = initFragmentShader();
 
-    // check for shader compile errors
-    glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-    if (!success) {
-        glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-    }
+    shaderCheckSuccess(fragmentShader, "FRAGMENT", success, infoLog);
 
     // link shaders
     unsigned int shaderProgram = glCreateProgram();
@@ -88,12 +118,7 @@ int main() {
     glLinkProgram(shaderProgram);
 
     // check for linking errors
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-
-    if (!success) {
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
-    }
+    checkLinkSuccess(shaderProgram, success, infoLog);
 
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
