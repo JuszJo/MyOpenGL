@@ -201,7 +201,7 @@ int main() {
         // Clear the color buffer
         glClear(GL_COLOR_BUFFER_BIT);
 
-        printf("xoff: %f, yoff: %f\n", xOffset, yOffset);
+        // printf("xoff: %f, yoff: %f\n", xOffset, yOffset);
 
         int positionLocation = glGetUniformLocation(shaderProgram, "npos");
         glUniform3f(positionLocation, xOffset, yOffset, 0.0f);
