@@ -15,10 +15,12 @@ const char *vertexShaderSource = R"(
     #version 330 core
     layout (location = 0) in vec3 aPos;
     layout (location = 1) in vec3 aColor;
+    uniform vec3 npos;
     out vec3 myColor;
     void main() {
-       gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-       myColor = aColor;
+        gl_Position = vec4(aPos.x + npos.x, aPos.y + npos.y, aPos.z + npos.z, 1.0);
+        // gl_Position = vec4(npos, 1.0);
+        myColor = aColor;
     }
 )";
 
@@ -78,8 +80,17 @@ void checkLinkSuccess(unsigned int shaderProgram, int success, char infoLog[512]
     }
 }
 
+float xOffset = 0.0f;
+float yOffset = 0.0f;
+
+void cursor_callback(GLFWwindow* window, double xpos, double ypos) {
+    float sens = 1.0f;
+
+    xOffset = (float)((xpos * 2.0f) / 800 - 1.0f) * sens;
+    yOffset = (float)(1.0f - (ypos * 2.0f) / 600) * sens;
+}
+
 int main() {
-    std::filesystem::path myPath = "me";
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
@@ -113,6 +124,8 @@ int main() {
 
     // size of rendering window
     glViewport(0, 0, width, height);
+
+    glfwSetCursorPosCallback(window, cursor_callback);
 
     // SHADERS
     int success = 0;
@@ -173,7 +186,9 @@ int main() {
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
-    glBindVertexArray(0); 
+    glBindVertexArray(0);
+
+    // double xpos, ypos;
 
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
@@ -185,6 +200,11 @@ int main() {
 
         // Clear the color buffer
         glClear(GL_COLOR_BUFFER_BIT);
+
+        printf("xoff: %f, yoff: %f\n", xOffset, yOffset);
+
+        int positionLocation = glGetUniformLocation(shaderProgram, "npos");
+        glUniform3f(positionLocation, xOffset, yOffset, 0.0f);
 
         // Draw a triangle
         // glBegin(GL_TRIANGLES);
@@ -209,6 +229,9 @@ int main() {
         // Poll for and process events
         glfwPollEvents();
     }
+
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
 
     // Clean up
     glfwDestroyWindow(window);
