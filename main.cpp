@@ -16,9 +16,10 @@ const char *vertexShaderSource = R"(
     layout (location = 0) in vec3 aPos;
     layout (location = 1) in vec3 aColor;
     uniform vec3 npos;
+    uniform float scale;
     out vec3 myColor;
     void main() {
-        gl_Position = vec4(aPos.x + npos.x, aPos.y + npos.y, aPos.z + npos.z, 1.0);
+        gl_Position = vec4((aPos.x * scale) + npos.x, (aPos.y * scale) + npos.y, aPos.z + npos.z, 1.0);
         // gl_Position = vec4(npos, 1.0);
         myColor = aColor;
     }
@@ -205,6 +206,9 @@ int main() {
 
         int positionLocation = glGetUniformLocation(shaderProgram, "npos");
         glUniform3f(positionLocation, xOffset, yOffset, 0.0f);
+
+        int scaleLocation = glGetUniformLocation(shaderProgram, "scale");
+        glUniform1f(scaleLocation, 0.5);
 
         // Draw a triangle
         // glBegin(GL_TRIANGLES);
