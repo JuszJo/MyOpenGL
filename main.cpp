@@ -156,21 +156,43 @@ int main() {
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
-    float vertices[] = {
+    /* float vertices[] = {
         -0.5f, -0.5f, 0.0f, 0.3f, 0.5f, 0.7f,
         0.5f, -0.5f, 0.0f,  1.0f, 0.5f, 0.2f,
         0.0f,  0.5f, 0.0f,  0.3f, 0.1f, 0.3f,
+    }; */
+
+    // float vertices[] = {
+    //     -0.5f, -0.5f, 0.0f,
+    //     0.5f, -0.5f, 0.0f, 
+    //     -0.5f,  0.5f, 0.0f,
+    //     0.5f, 0.5f, 0.0f,
+    // };
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f, 0.3f, 0.5f, 0.7f,
+        0.5f, -0.5f, 0.0f,  1.0f, 0.5f, 0.2f,
+        -0.5f,  0.5f, 0.0f,  0.3f, 0.1f, 0.3f,
+        0.5f, 0.5f, 0.0f, 1.0f, 0.9f, 0.7f
     };
 
-    unsigned int VBO, VAO;
+    GLuint indices[] = {
+        0, 1, 2,
+        1, 2, 3
+    };
+
+    unsigned int VBO, VAO, EBO;
     glGenVertexArrays(1, &VAO);
     glGenBuffers(1, &VBO);
+    glGenBuffers(1, &EBO);
 
     // bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     // postition attribute
     // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
@@ -183,7 +205,8 @@ int main() {
 
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's 
     //bound vertex buffer object so afterwards we can safely unbind
-    glBindBuffer(GL_ARRAY_BUFFER, 0); 
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
     // VAOs requires a call to glBindVertexArray anyways so we generally don't unbind VAOs (nor VBOs) when it's not directly necessary.
@@ -208,7 +231,7 @@ int main() {
         glUniform3f(positionLocation, xOffset, yOffset, 0.0f);
 
         int scaleLocation = glGetUniformLocation(shaderProgram, "scale");
-        glUniform1f(scaleLocation, 0.5);
+        glUniform1f(scaleLocation, 0.5f);
 
         // Draw a triangle
         // glBegin(GL_TRIANGLES);
@@ -221,7 +244,8 @@ int main() {
         // glEnd();
 
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         processInput(window);
 
