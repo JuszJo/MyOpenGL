@@ -5,6 +5,7 @@
 #include <array>
 #include <string>
 #include <cstring>
+#include <filesystem>
 
 using std::vector;
 using std::array;
@@ -78,6 +79,7 @@ void checkLinkSuccess(unsigned int shaderProgram, int success, char infoLog[512]
 }
 
 int main() {
+    std::filesystem::path myPath = "me";
     // Initialize GLFW
     if (!glfwInit()) {
         std::cerr << "Failed to initialize GLFW" << std::endl;
