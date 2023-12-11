@@ -13,16 +13,21 @@ using std::string;
 const char *vertexShaderSource = R"(
     #version 330 core
     layout (location = 0) in vec3 aPos;
+    layout (location = 1) in vec3 aColor;
+    out vec3 myColor;
     void main() {
        gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+       myColor = aColor;
     }
 )";
 
 const char *fragmentShaderSource = R"(
     #version 330 core
     out vec4 FragColor;
+    in vec3 myColor;
     void main() {
-        FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+        // FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);
+        FragColor = vec4(myColor, 1.0f);
     }
 )";
 
@@ -99,6 +104,14 @@ int main() {
         return 1;
     }
 
+    // Set the viewport size
+    int width, height;
+
+    glfwGetFramebufferSize(window, &width, &height);
+
+    // size of rendering window
+    glViewport(0, 0, width, height);
+
     // SHADERS
     int success = 0;
     char infoLog[512];
@@ -122,13 +135,15 @@ int main() {
     // check for linking errors
     checkLinkSuccess(shaderProgram, success, infoLog);
 
+    glUseProgram(shaderProgram);
+
     glDeleteShader(vertexShader);
     glDeleteShader(fragmentShader);
 
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        0.0f,  0.5f, 0.0f
+        -0.5f, -0.5f, 0.0f, 0.3f, 0.5f, 0.7f,
+        0.5f, -0.5f, 0.0f,  1.0f, 0.5f, 0.2f,
+        0.0f,  0.5f, 0.0f,  0.3f, 0.1f, 0.3f,
     };
 
     unsigned int VBO, VAO;
@@ -141,10 +156,17 @@ int main() {
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    // postition attribute
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 
-    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
+    // color attribute
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+
+    // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's 
+    //bound vertex buffer object so afterwards we can safely unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0); 
 
     // You can unbind the VAO afterwards so other VAO calls won't accidentally modify this VAO, but this rarely happens. Modifying other
@@ -154,14 +176,6 @@ int main() {
     // Loop until the user closes the window
     while (!glfwWindowShouldClose(window)) {
         // Render here
-
-        // Set the viewport size
-        int width, height;
-
-        glfwGetFramebufferSize(window, &width, &height);
-
-        // size of rendering window
-        glViewport(0, 0, width, height);
 
         // clear
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -180,12 +194,10 @@ int main() {
         // glVertex2f(0.0f, 0.5f);
         // glEnd();
 
-        glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
         processInput(window);
-
 
         // last
         
