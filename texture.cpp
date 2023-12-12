@@ -16,13 +16,17 @@ using std::string;
 
 const char *vertexShaderSource = R"(
     #version 330 core
+
     layout (location = 0) in vec3 aPos;
     layout (location = 1) in vec3 aColor;
     layout (location = 2) in vec2 aTexCoord;
+
     uniform vec3 npos;
     uniform float scale;
+
     out vec3 myColor;
     out vec2 textureCoord;
+
     void main() {
         gl_Position = vec4((aPos.x * scale) + npos.x, (aPos.y * scale) + npos.y, aPos.z + npos.z, 1.0);
         // gl_Position = vec4(npos, 1.0);
@@ -33,6 +37,7 @@ const char *vertexShaderSource = R"(
 
 const char *fragmentShaderSource = R"(
     #version 330 core
+    
     out vec4 FragColor;
 
     in vec3 myColor;
