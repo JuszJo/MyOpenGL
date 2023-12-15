@@ -137,20 +137,42 @@ int main() {
 
     myShader.use();
 
+    glm::mat4 transformationMatrix = glm::mat4(1.0f);
+
+    transformationMatrix = glm::translate(transformationMatrix, glm::vec3(0.3f, 0.0f, 0.0f));
+
     while(!glfwWindowShouldClose(window)) {
         glClearColor(0.3f, 0.4f, 0.6f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glm::mat4 transformationMatrix = glm::mat4(1.0f);
-        
-        transformationMatrix = glm::rotate(transformationMatrix, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
+        // glm::mat4 transformationMatrix = glm::mat4(1.0f);
+
+        // transformationMatrix = glm::translate(transformationMatrix, glm::vec3(-0.5f, 0.0f, 0.0f));
+
+        // transformationMatrix = glm::rotate(transformationMatrix, (float)glfwGetTime(), glm::vec3(1.0f, 0.0f, 1.0f));
+
+        // transformationMatrix = glm::scale(transformationMatrix, glm::vec3(0.3f, 0.3f, 0.3f));
 
         glUniformMatrix4fv(glGetUniformLocation(myShader.shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(transformationMatrix));
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         glBindTexture(GL_TEXTURE_2D, TBO);
-        mainLoop(VAO);
+        glBindVertexArray(VAO);
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // glm::mat4 transformationMatrix2 = glm::mat4(1.0f);
+
+        // transformationMatrix2 = glm::translate(transformationMatrix2, glm::vec3(0.5f, 0.0f, 0.0f));
+
+        // transformationMatrix2 = glm::rotate(transformationMatrix2, (float)glfwGetTime(), glm::vec3(0.5f, 0.0f, 1.0f));
+
+        // transformationMatrix2 = glm::scale(transformationMatrix2, glm::vec3(0.3f, 0.3f, 0.3f));
+
+        // glUniformMatrix4fv(glGetUniformLocation(myShader.shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(transformationMatrix2));
+
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         processInput(window);
 
