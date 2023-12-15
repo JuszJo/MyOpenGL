@@ -1,3 +1,5 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -70,7 +72,7 @@ void handleBufferObject(unsigned int VBO, float* vertices, float size) {
 
 void handleVertexObject(unsigned int VAO) {
     glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 }
 
@@ -96,10 +98,10 @@ int main() {
     Shader myShader("vertexShader.glsl", "fragmentShader.glsl");
 
     float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-        0.5f, -0.5f, 0.0f,
-        -0.5f, 0.5f, 0.0f,
-        0.5f, 0.5f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+        0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+        0.5f, 0.5f, 0.0f, 1.0f, 1.0f,
     };
 
     unsigned int indices[] = {
@@ -109,7 +111,7 @@ int main() {
 
     float verticesSize = sizeof(vertices);
 
-    unsigned int VAO, VBO, EBO;
+    unsigned int VAO, VBO, EBO, TBO;
 
     genVertexandBuffers(&VAO, &VBO, &EBO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
@@ -118,6 +120,18 @@ int main() {
     handleBufferObject(VBO, vertices, verticesSize);
 
     handleVertexObject(VAO);
+
+    int textureWidth, textureHeight, numberOfChannels;
+
+    stbi_uc* imageData = stbi_load("wall.jpg", &textureWidth, &textureHeight, &numberOfChannels, 0);
+
+    glGenTextures(1, &TBO);
+    glBindTexture(GL_TEXTURE_2D, TBO);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, textureWidth, textureHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, imageData);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    stbi_image_free(imageData);
 
     cleanupBuffers();
 
@@ -129,11 +143,13 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
 
         glm::mat4 transformationMatrix = glm::mat4(1.0f);
-        transformationMatrix = glm::rotate(transformationMatrix, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        
+        transformationMatrix = glm::rotate(transformationMatrix, (float)glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
 
         glUniformMatrix4fv(glGetUniformLocation(myShader.shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(transformationMatrix));
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+        glBindTexture(GL_TEXTURE_2D, TBO);
         mainLoop(VAO);
 
         processInput(window);
@@ -142,6 +158,11 @@ int main() {
 
         glfwPollEvents();
     }
+
+    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteTextures(1, &TBO);
+    glDeleteProgram(myShader.shaderProgram);
 
     glfwDestroyWindow(window);
     glfwTerminate();
