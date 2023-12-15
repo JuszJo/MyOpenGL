@@ -1,6 +1,9 @@
 #include <iostream>
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include "shader.h"
 
 // make sure the viewport matches the new window dimensions; note that width and 
@@ -54,14 +57,10 @@ void initGL(GLFWwindow* window) {
     }
 }
 
-void mainLoop(unsigned int VAO) {
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-}
-
-void genVertexandBuffers(unsigned int* VAO, unsigned int* VBO) {
+void genVertexandBuffers(unsigned int* VAO, unsigned int* VBO, unsigned int* EBO) {
     glGenVertexArrays(1, VAO);
     glGenBuffers(1, VBO);
+    glGenBuffers(1, EBO);
 }
 
 void handleBufferObject(unsigned int VBO, float* vertices, float size) {
@@ -80,8 +79,14 @@ void cleanupBuffers() {
     glBindVertexArray(0);
 }
 
+void mainLoop(unsigned int VAO) {
+    glBindVertexArray(VAO);
+    // glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
 int main() {
-    int width = 800;
+    int width = 600;
     int height = 600;
 
     GLFWwindow* window = initWindow(width, height);
@@ -93,14 +98,22 @@ int main() {
     float vertices[] = {
         -0.5f, -0.5f, 0.0f,
         0.5f, -0.5f, 0.0f,
-        0.0f, 0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f,
+    };
+
+    unsigned int indices[] = {
+        0, 1, 2,
+        1, 2, 3
     };
 
     float verticesSize = sizeof(vertices);
 
-    unsigned int VAO, VBO;
+    unsigned int VAO, VBO, EBO;
 
-    genVertexandBuffers(&VAO, &VBO);
+    genVertexandBuffers(&VAO, &VBO, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW); 
 
     handleBufferObject(VBO, vertices, verticesSize);
 
@@ -115,6 +128,12 @@ int main() {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        glm::mat4 transformationMatrix = glm::mat4(1.0f);
+        transformationMatrix = glm::rotate(transformationMatrix, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        glUniformMatrix4fv(glGetUniformLocation(myShader.shaderProgram, "transform"), 1, GL_FALSE, glm::value_ptr(transformationMatrix));
+
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
         mainLoop(VAO);
 
         processInput(window);
