@@ -59,6 +59,27 @@ void mainLoop(unsigned int VAO) {
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
+void genVertexandBuffers(unsigned int* VAO, unsigned int* VBO) {
+    glGenVertexArrays(1, VAO);
+    glGenBuffers(1, VBO);
+}
+
+void handleBufferObject(unsigned int VBO, float* vertices, float size) {
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, size, vertices, GL_DYNAMIC_DRAW);
+}
+
+void handleVertexObject(unsigned int VAO) {
+    glBindVertexArray(VAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+}
+
+void cleanupBuffers() {
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}
+
 int main() {
     int width = 800;
     int height = 600;
@@ -75,19 +96,17 @@ int main() {
         0.0f, 0.5f, 0.0f,
     };
 
+    float verticesSize = sizeof(vertices);
+
     unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    genVertexandBuffers(&VAO, &VBO);
 
-    glBindVertexArray(VAO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
+    handleBufferObject(VBO, vertices, verticesSize);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
+    handleVertexObject(VAO);
+
+    cleanupBuffers();
 
     myShader.use();
 
