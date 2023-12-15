@@ -54,8 +54,9 @@ void initGL(GLFWwindow* window) {
     }
 }
 
-void mainLoop() {
-    
+void mainLoop(unsigned int VAO) {
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
 int main() {
@@ -68,12 +69,34 @@ int main() {
 
     Shader myShader("vertexShader.glsl", "fragmentShader.glsl");
 
+    float vertices[] = {
+        -0.5f, -0.5f, 0.0f,
+        0.5f, -0.5f, 0.0f,
+        0.0f, 0.5f, 0.0f,
+    };
+
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+
+    glBindVertexArray(VAO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    myShader.use();
+
     while(!glfwWindowShouldClose(window)) {
         glClearColor(0.3f, 0.4f, 0.6f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        mainLoop();
+        mainLoop(VAO);
 
         processInput(window);
 
